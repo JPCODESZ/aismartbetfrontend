@@ -2,17 +2,24 @@ import { useEffect, useState } from 'react';
 
 export default function Home() {
   const [odds, setOdds] = useState([]);
-  const backendURL = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const [error, setError] = useState(null);
+  const backendURL = 'https://aismartbetbackend.onrender.com'; // Hardcoded fallback for now
 
   useEffect(() => {
     const getOdds = async () => {
       try {
         const res = await fetch(`${backendURL}/odds/basketball_nba`);
         const data = await res.json();
-        console.log('Fetched odds:', data); // Debugging
-        setOdds(data);
+
+        if (!Array.isArray(data)) {
+          setError('API did not return an array');
+        } else if (data.length === 0) {
+          setError('No odds data found');
+        } else {
+          setOdds(data);
+        }
       } catch (err) {
-        console.error("Failed to fetch odds:", err);
+        setError('Fetch failed: ' + err.message);
       }
     };
 
@@ -22,37 +29,45 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-100 text-black">
       <div className="max-w-4xl mx-auto p-6">
-        <h1 className="text-3xl font-bold text-center mb-8">🏀 NBA Betting Odds</h1>
+        <h1 className="text-3xl font-bold text-center mb-4">🏀 NBA Betting Odds</h1>
+        <p className="text-sm text-center text-gray-500 mb-4">
+          Backend URL: <code>{backendURL}</code>
+        </p>
 
-        {odds.length === 0 ? (
-          <div className="text-center text-gray-500">Loading odds...</div>
-        ) : (
-          odds.map((game) => (
-            <div key={game.id} className="bg-white shadow-lg rounded-lg p-4 mb-6">
-              <h2 className="text-xl font-semibold mb-1">
-                {game.away_team} @ {game.home_team}
-              </h2>
-              <p className="text-gray-600 text-sm mb-2">
-                {new Date(game.commence_time).toLocaleString()}
-              </p>
-
-              {game.bookmakers?.map((bookmaker) => (
-                <div key={bookmaker.key} className="mt-3 border-t pt-2">
-                  <h3 className="font-semibold">{bookmaker.title}</h3>
-                  {bookmaker.markets?.map((market) => (
-                    <div key={market.key} className="mt-1">
-                      {market.outcomes?.map((outcome) => (
-                        <p key={outcome.name} className="text-sm">
-                          {outcome.name}: <span className="font-bold">{outcome.price}</span>
-                        </p>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          ))
+        {error && (
+          <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-center">
+            <strong>Error:</strong> {error}
+          </div>
         )}
+
+        {odds.length === 0 && !error && (
+          <div className="text-center text-gray-500">Loading odds...</div>
+        )}
+
+        {odds.map((game) => (
+          <div key={game.id} className="bg-white shadow rounded p-4 mb-6">
+            <h2 className="text-xl font-semibold">
+              {game.away_team} @ {game.home_team}
+            </h2>
+            <p className="text-gray-600 text-sm mb-2">
+              {new Date(game.commence_time).toLocaleString()}
+            </p>
+            {game.bookmakers?.map((bookmaker) => (
+              <div key={bookmaker.key} className="mt-3 border-t pt-2">
+                <h3 className="font-semibold">{bookmaker.title}</h3>
+                {bookmaker.markets?.map((market) => (
+                  <div key={market.key}>
+                    {market.outcomes?.map((outcome) => (
+                      <p key={outcome.name} className="text-sm">
+                        {outcome.name}: <strong>{outcome.price}</strong>
+                      </p>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
     </div>
   );
