@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 export default function Home() {
   const [odds, setOdds] = useState([]);
   const [error, setError] = useState(null);
-  const backendURL = 'https://aismartbetbackend.onrender.com'; // Hardcoded fallback for now
+
+  const backendURL = 'https://aismartbetbackend.onrender.com'; // hardcoded
 
   useEffect(() => {
     const getOdds = async () => {
@@ -12,9 +13,11 @@ export default function Home() {
         const data = await res.json();
 
         if (!Array.isArray(data)) {
-          setError('API did not return an array');
-        } else if (data.length === 0) {
-          setError('No odds data found');
+          throw new Error('API did not return an array');
+        }
+
+        if (data.length === 0) {
+          setError('No odds found');
         } else {
           setOdds(data);
         }
