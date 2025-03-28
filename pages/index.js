@@ -4,7 +4,7 @@ export default function Home() {
   const [odds, setOdds] = useState([]);
   const [error, setError] = useState(null);
 
-  const backendURL = 'https://aismartbetbackend.onrender.com'; // hardcoded
+  const backendURL = 'https://aismartbetbackend.onrender.com'; // hardcoded backend
 
   useEffect(() => {
     const getOdds = async () => {
@@ -13,11 +13,7 @@ export default function Home() {
         const data = await res.json();
 
         if (!Array.isArray(data)) {
-          throw new Error('API did not return an array');
-        }
-
-        if (data.length === 0) {
-          setError('No odds found');
+          setError('Unexpected response format');
         } else {
           setOdds(data);
         }
@@ -34,7 +30,7 @@ export default function Home() {
       <div className="max-w-4xl mx-auto p-6">
         <h1 className="text-3xl font-bold text-center mb-4">🏀 NBA Betting Odds</h1>
         <p className="text-sm text-center text-gray-500 mb-4">
-          Backend URL: <code>{backendURL}</code>
+          Backend: <code>{backendURL}</code>
         </p>
 
         {error && (
